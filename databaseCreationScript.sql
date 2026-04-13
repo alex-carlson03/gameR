@@ -13,12 +13,12 @@ create table lobbies (
   player1_id uuid references users(id) on delete cascade,
   player2_id uuid references users(id) on delete cascade,
   current_turn uuid references users(id), -- whose turn is it
-  board_state jsonb not null default '{"cells": [null,null,null,null,null,null,null,null,null], "size": 3}',
+  board_state jsonb not null default '{"cells": [0,0,0,0,0,0,0,0,0], "current_turn": "-1"}',
   status text not null default 'waiting', -- 'waiting', 'active', 'finished'
   winner_id uuid references users(id),
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
-);
+);  
 
 -- players get placed in here for matchamking. A background worker will look at this table every few seconds and try to match players up into lobbies.
 create table matchmaking_players (

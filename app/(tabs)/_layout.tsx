@@ -23,7 +23,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Play",
+          title: "Online Play",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="game-controller" size={size} color={color} />
           ),
@@ -33,7 +33,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="lobbies"
         options={{
-          title: "Browse Lobbies",
+          title: "Local Game",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           ),
