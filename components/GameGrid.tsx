@@ -1,21 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
+import { useUser } from "../lib/UserContext";
 
 type GameGridProps = {
   lobbyId: string;
   board: number[];
+  clientPlayerNumber?: number;
   onTilePress: (index: number) => void;
 };
 
-
-const GameGrid = ({ lobbyId, board, onTilePress }: GameGridProps) => {
+const GameGrid = ({
+  lobbyId,
+  board,
+  clientPlayerNumber,
+  onTilePress,
+}: GameGridProps) => {
   const { width } = useWindowDimensions();
   const tileSize = width / 3;
+  const { user } = useUser();
+  const [clientColor, setClientColor] = useState<string>("");
+
+  // Set client color based on player number
+  React.useEffect(() => {
+    if (user) {
+      setClientColor(user.avatar_color);
+    }
+  }, [user]);
 
   return (
     <View style={styles.grid}>
@@ -25,8 +40,16 @@ const GameGrid = ({ lobbyId, board, onTilePress }: GameGridProps) => {
           style={[
             styles.tile,
             { width: tileSize, height: tileSize },
-            cell === 1 && styles.tileClient,
-            cell === 2 && styles.tileOpponent,
+            cell === 1 &&
+              styles.tileP1 && {
+                backgroundColor:
+                  clientPlayerNumber === 1 ? clientColor : "#E24A4A",
+              },
+            cell === 2 &&
+              styles.tileP2 && {
+                backgroundColor:
+                  clientPlayerNumber === 2 ? clientColor : "#E24A4A",
+              },
           ]}
           onPress={() => onTilePress(index)}
           activeOpacity={0.7}
@@ -47,10 +70,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#333",
   },
-  tileClient: {
+  tileP1: {
     backgroundColor: "#4A90E2",
   },
-  tileOpponent: {
+  tileP2: {
     backgroundColor: "#E24A4A",
   },
 });

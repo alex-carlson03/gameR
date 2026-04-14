@@ -202,6 +202,7 @@ export default function Game() {
       <GameGrid
         lobbyId={lobbyId}
         board={board_state?.cells || Array(9).fill(0)}
+        clientPlayerNumber={clientPlayerNumber}
         onTilePress={gameOver ? () => {} : handleTilePress}
       />
     </View>
