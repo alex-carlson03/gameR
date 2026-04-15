@@ -1,7 +1,7 @@
 import GameGrid from "@/components/GameGrid";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { checkWin } from "../../lib/gameLogic";
+import { checkWin } from "../lib/gameLogic";
 
 export default function LocalGame() {
   const [board, setBoard] = useState<number[]>(Array(9).fill(0));

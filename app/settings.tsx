@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "../../lib/UserContext";
+import { useUser } from "../lib/UserContext";
 
 const AVATAR_COLORS = [
   "#6C63FF",
