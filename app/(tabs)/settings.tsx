@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -27,12 +28,34 @@ export default function Settings() {
   const [displayName, setDisplayName] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [stats, setStats] = useState({ wins: 0, losses: 0, draws: 0 });
 
   useEffect(() => {
     if (user) {
-      setDisplayName(user.display_name);
+      setDisplayName(user.display_name ?? "");
       setSelectedColor(user.avatar_color ?? AVATAR_COLORS[0]);
     }
+  }, [user]);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      if (!user) return;
+
+      try {
+        const statsKey = `game_stats_${user.id}`;
+        const savedStats = await AsyncStorage.getItem(statsKey);
+
+        if (savedStats) {
+          setStats(JSON.parse(savedStats));
+        } else {
+          setStats({ wins: 0, losses: 0, draws: 0 });
+        }
+      } catch (error) {
+        console.error("Failed to load game stats:", error);
+      }
+    };
+
+    loadStats();
   }, [user]);
 
   async function handleSave() {
@@ -54,6 +77,19 @@ export default function Settings() {
     }
   }
 
+  async function handleClearStats() {
+    if (!user) return;
+
+    try {
+      const statsKey = `game_stats_${user.id}`;
+      await AsyncStorage.removeItem(statsKey);
+      setStats({ wins: 0, losses: 0, draws: 0 });
+      Alert.alert("Cleared", "Game stats have been reset.");
+    } catch {
+      Alert.alert("Error", "Failed to clear game stats.");
+    }
+  }
+
   if (isLoading) {
     return (
       <View style={styles.centered}>
@@ -65,6 +101,7 @@ export default function Settings() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Settings</Text>
+      <Text style={styles.subtitle}>Update your profile and avatar</Text>
 
       <Text style={styles.label}>Display Name</Text>
       <TextInput
@@ -92,13 +129,26 @@ export default function Settings() {
       </View>
 
       <View style={styles.previewRow}>
-        <View style={[styles.avatarPreview, { backgroundColor: selectedColor }]}>
+        <View
+          style={[styles.avatarPreview, { backgroundColor: selectedColor }]}
+        >
           <Text style={styles.avatarInitial}>
             {displayName.trim().charAt(0).toUpperCase() || "?"}
           </Text>
         </View>
-        <Text style={styles.previewName}>{displayName || "Player"}</Text>
+        <Text style={styles.previewName}>{displayName.trim() || "Player"}</Text>
       </View>
+
+      <Text style={styles.label}>Game Stats</Text>
+      <View style={styles.statsBox}>
+        <Text style={styles.statsText}>Wins: {stats.wins}</Text>
+        <Text style={styles.statsText}>Losses: {stats.losses}</Text>
+        <Text style={styles.statsText}>Draws: {stats.draws}</Text>
+      </View>
+
+      <TouchableOpacity style={styles.clearButton} onPress={handleClearStats}>
+        <Text style={styles.clearButtonText}>Clear Game Stats</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
@@ -131,7 +181,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     color: "#fff",
-    marginBottom: 32,
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: "#aaa",
+    fontSize: 15,
+    marginBottom: 24,
   },
   label: {
     color: "#aaa",
@@ -171,7 +226,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
-    marginBottom: 40,
+    marginBottom: 28,
     backgroundColor: "#2a2a4a",
     padding: 16,
     borderRadius: 12,
@@ -191,6 +246,29 @@ const styles = StyleSheet.create({
   previewName: {
     color: "#fff",
     fontSize: 18,
+    fontWeight: "600",
+  },
+  statsBox: {
+    backgroundColor: "#2a2a4a",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  statsText: {
+    color: "#fff",
+    fontSize: 16,
+    marginBottom: 6,
+  },
+  clearButton: {
+    backgroundColor: "#3a3a5a",
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  clearButtonText: {
+    color: "#fff",
+    fontSize: 15,
     fontWeight: "600",
   },
   saveButton: {
