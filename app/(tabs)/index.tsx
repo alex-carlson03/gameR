@@ -7,6 +7,9 @@ const index = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Tic Tac Toe</Text>
+      <Text style={styles.subtitle}>Play online with friends</Text>
+
       <TouchableOpacity
         style={styles.playButton}
         onPress={() => router.push("../game/matchmaking")}
@@ -35,9 +38,10 @@ const styles = StyleSheet.create({
   subtitle: {
     color: "#888",
     fontSize: 16,
+    marginBottom: 20,
   },
   playButton: {
-    marginTop: 32,
+    marginTop: 12,
     backgroundColor: "#6C63FF",
     paddingVertical: 16,
     paddingHorizontal: 64,
