@@ -1,4 +1,5 @@
 import GameGrid from "@/components/GameGrid";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -20,6 +21,7 @@ export default function Game() {
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState<string>("");
   const [clientPlayerNumber, setClientPlayerNumber] = useState<number>(0);
+  const [statsSaved, setStatsSaved] = useState(false);
 
   // Fetch initial lobby state on mount
   useEffect(() => {
@@ -42,6 +44,7 @@ export default function Game() {
       setClientPlayerNumber(lobby.player1_id === user?.id ? 1 : 2);
       // always starts with player 1's turn, if current_turn is -1 we know it's the first move of the game and we can set it to player 1's id
       setCurrentTurn(lobby.player1_id);
+      setStatsSaved(false);
     };
 
     fetchLobbyState();
@@ -51,8 +54,10 @@ export default function Game() {
   useEffect(() => {
     if (!lobbyId) return;
 
+    const channelName = `lobby:${lobbyId}:${Date.now()}`;
+
     const subscription = supabase
-      .channel(`lobby-${lobbyId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
@@ -66,6 +71,7 @@ export default function Game() {
             id: string;
             board_state: BoardState;
           };
+
           if (payload.eventType === "DELETE") {
             // Lobby was deleted (probably because opponent left), navigate back to matchmaking
             router.push("/");
@@ -93,6 +99,7 @@ export default function Game() {
               if (newWinner !== "") {
                 setWinner(newWinner);
                 setGameOver(true);
+                saveGameResult(newWinner);
               }
             }
           }
@@ -103,7 +110,7 @@ export default function Game() {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [lobbyId, clientPlayerNumber]);
+  }, [lobbyId, clientPlayerNumber, user]);
 
   //  Handle tile press
   const handleTilePress = async (index: number) => {
@@ -181,23 +188,65 @@ export default function Game() {
     }
   };
 
+  const saveGameResult = async (result: string) => {
+    if (!user || statsSaved) return;
+
+    try {
+      const statsKey = `game_stats_${user.id}`;
+      const savedStats = await AsyncStorage.getItem(statsKey);
+
+      const stats = savedStats
+        ? JSON.parse(savedStats)
+        : { wins: 0, losses: 0, draws: 0 };
+
+      if (result === "You") {
+        stats.wins += 1;
+      } else if (result === "Opponent") {
+        stats.losses += 1;
+      } else if (result === "Draw") {
+        stats.draws += 1;
+      } else {
+        return;
+      }
+
+      await AsyncStorage.setItem(statsKey, JSON.stringify(stats));
+      setStatsSaved(true);
+    } catch (error) {
+      console.error("Failed to save game stats:", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.subtitle}>{lobbyId}</Text>
-      <Text>
-        {user && currentTurn === user.id ? "Your turn" : "Opponent's turn"}
+      <Text style={styles.turnText}>
+        {gameOver
+          ? "Game finished"
+          : user && currentTurn === user.id
+            ? "Your turn"
+            : "Opponent's turn"}
       </Text>
+
       <TouchableOpacity onPress={leaveLobby} style={{ marginBottom: 20 }}>
         <Text style={{ color: "#E24A4A" }}>Leave Lobby</Text>
       </TouchableOpacity>
       {gameOver && (
-        <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
-          {winner === "You"
-            ? "You win!"
-            : winner === "Opponent"
-              ? "Opponent wins!"
-              : "It's a draw!"}
-        </Text>
+        <View style={styles.resultBox}>
+          <Text style={styles.resultTitle}>
+            {winner === "You"
+              ? "You win!"
+              : winner === "Opponent"
+                ? "Opponent wins!"
+                : "It's a draw!"}
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => router.push("/")}
+            style={styles.menuButton}
+          >
+            <Text style={styles.menuButtonText}>Back to Menu</Text>
+          </TouchableOpacity>
+        </View>
       )}
       <GameGrid
         lobbyId={lobbyId}
@@ -225,5 +274,36 @@ const styles = StyleSheet.create({
   subtitle: {
     color: "#888",
     fontSize: 16,
+  },
+  turnText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  resultBox: {
+    marginTop: 20,
+    backgroundColor: "#2a2a4a",
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    width: "85%",
+  },
+  resultTitle: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 14,
+  },
+  menuButton: {
+    backgroundColor: "#6C63FF",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+  },
+  menuButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
