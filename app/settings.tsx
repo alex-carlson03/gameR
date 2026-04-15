@@ -1,7 +1,10 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -23,6 +26,7 @@ const AVATAR_COLORS = [
 ];
 
 export default function Settings() {
+  const router = useRouter();
   const { user, isLoading, updateUser } = useUser();
   const [displayName, setDisplayName] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
@@ -64,53 +68,69 @@ export default function Settings() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFAF8" />
 
-      <Text style={styles.label}>Display Name</Text>
-      <TextInput
-        style={styles.input}
-        value={displayName}
-        onChangeText={setDisplayName}
-        placeholder="Enter display name"
-        placeholderTextColor="#888"
-        maxLength={24}
-      />
-
-      <Text style={styles.label}>Avatar Color</Text>
-      <View style={styles.colorGrid}>
-        {AVATAR_COLORS.map((color) => (
-          <TouchableOpacity
-            key={color}
-            style={[
-              styles.colorSwatch,
-              { backgroundColor: color },
-              selectedColor === color && styles.colorSwatchSelected,
-            ]}
-            onPress={() => setSelectedColor(color)}
-          />
-        ))}
+      {/* Header with back button */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.push("/menu")}
+          style={styles.backBtn}
+        >
+          <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
-      <View style={styles.previewRow}>
-        <View style={[styles.avatarPreview, { backgroundColor: selectedColor }]}>
-          <Text style={styles.avatarInitial}>
-            {displayName.trim().charAt(0).toUpperCase() || "?"}
-          </Text>
+      <View style={styles.content}>
+        <Text style={styles.label}>Display Name</Text>
+        <TextInput
+          style={styles.input}
+          value={displayName}
+          onChangeText={setDisplayName}
+          placeholder="Enter display name"
+          placeholderTextColor="#888"
+          maxLength={24}
+        />
+
+        <Text style={styles.label}>Avatar Color</Text>
+        <View style={styles.colorGrid}>
+          {AVATAR_COLORS.map((color) => (
+            <TouchableOpacity
+              key={color}
+              style={[
+                styles.colorSwatch,
+                { backgroundColor: color },
+                selectedColor === color && styles.colorSwatchSelected,
+              ]}
+              onPress={() => setSelectedColor(color)}
+            />
+          ))}
         </View>
-        <Text style={styles.previewName}>{displayName || "Player"}</Text>
-      </View>
 
-      <TouchableOpacity
-        style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
-        onPress={handleSave}
-        disabled={isSaving}
-      >
-        {isSaving ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.saveButtonText}>Save Changes</Text>
-        )}
-      </TouchableOpacity>
+        <View style={styles.previewRow}>
+          <View
+            style={[styles.avatarPreview, { backgroundColor: selectedColor }]}
+          >
+            <Text style={styles.avatarInitial}>
+              {displayName.trim().charAt(0).toUpperCase() || "?"}
+            </Text>
+          </View>
+          <Text style={styles.previewName}>{displayName || "Player"}</Text>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+          onPress={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.saveButtonText}>Save Changes</Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -118,23 +138,43 @@ export default function Settings() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1a1a2e",
-    padding: 24,
+    backgroundColor: "#FAFAF8",
+    paddingHorizontal: 24,
   },
   centered: {
     flex: 1,
-    backgroundColor: "#1a1a2e",
+    backgroundColor: "#FAFAF8",
     justifyContent: "center",
     alignItems: "center",
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 32,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 20,
+    paddingBottom: 32,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: "300",
+    color: "#1a1a1a",
+    letterSpacing: 2,
+  },
+  headerSpacer: {
+    width: 40,
+    height: 40,
+  },
+  content: {
+    flex: 1,
   },
   label: {
-    color: "#aaa",
+    color: "#555",
     fontSize: 13,
     fontWeight: "600",
     textTransform: "uppercase",
@@ -142,14 +182,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: "#2a2a4a",
-    color: "#fff",
+    backgroundColor: "#fff",
+    color: "#1a1a1a",
     borderRadius: 10,
     padding: 14,
     fontSize: 16,
     marginBottom: 28,
     borderWidth: 1,
-    borderColor: "#3a3a5a",
+    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 2,
   },
   colorGrid: {
     flexDirection: "row",
@@ -164,7 +209,7 @@ const styles = StyleSheet.create({
   },
   colorSwatchSelected: {
     borderWidth: 3,
-    borderColor: "#fff",
+    borderColor: "#1a1a1a",
     transform: [{ scale: 1.15 }],
   },
   previewRow: {
@@ -172,9 +217,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 16,
     marginBottom: 40,
-    backgroundColor: "#2a2a4a",
+    backgroundColor: "#fff",
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#000",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 2,
   },
   avatarPreview: {
     width: 52,
@@ -189,22 +241,29 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   previewName: {
-    color: "#fff",
+    color: "#1a1a1a",
     fontSize: 18,
     fontWeight: "600",
   },
   saveButton: {
-    backgroundColor: "#6C63FF",
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#000",
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 2,
   },
   saveButtonDisabled: {
     opacity: 0.6,
   },
   saveButtonText: {
-    color: "#fff",
+    color: "#1a1a1a",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
 });

@@ -1,7 +1,15 @@
+import { Ionicons } from "@expo/vector-icons";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "../../lib/UserContext";
 import { supabase } from "../../lib/supabase";
 
@@ -133,7 +141,7 @@ export default function Matchmaking() {
 
     cleanup();
     setStatus("idle");
-    router.replace("/"); // Navigate back to home
+    router.replace("/tictacmenu"); // Navigate back
   };
 
   const cleanup = () => {
@@ -167,44 +175,71 @@ export default function Matchmaking() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.cancelButton}
-        onPress={() => {
-          leaveQueue();
-        }}
-      >
-        <Text style={styles.cancelButtonText}>Cancel</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFAF8" />
 
-      <Text style={styles.title}>Finding a Match...</Text>
-    </View>
+      {/* Header with back/cancel button */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={leaveQueue} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Online</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      <View style={styles.content}>
+        {status === "matched" ? (
+          <Text style={styles.matchedText}>Match Found!</Text>
+        ) : (
+          <Text style={styles.searchingText}>Finding a Match...</Text>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1a1a2e",
+    backgroundColor: "#FAFAF8",
+    paddingHorizontal: 24,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 20,
+    paddingBottom: 32,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
   },
-  title: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: "300",
+    color: "#1a1a1a",
+    letterSpacing: 2,
   },
-  cancelButton: {
-    position: "absolute",
-    top: 40,
-    backgroundColor: "#6C63FF",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+  headerSpacer: {
+    width: 40,
+    height: 40,
   },
-  cancelButtonText: {
-    color: "#fff",
-    fontSize: 16,
+  content: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  searchingText: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#1a1a1a",
+  },
+  matchedText: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#6C63FF",
   },
 });

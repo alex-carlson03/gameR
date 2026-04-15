@@ -1,7 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import {StatusBar, StyleSheet, Text, TouchableOpacity, View,} from "react-native";
+import {
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type MenuItem = {
@@ -31,7 +37,7 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Match History",
     sublabel: "Review your past games",
     icon: "time-outline",
-    route: "/referencetictac", // swap for /match-history once built
+    route: "/matchHistory", // swap for /match-history once built
     accent: "#F5A623",
   },
 ];
@@ -45,7 +51,10 @@ export default function TicTacMenu() {
 
       {/* Header with back button */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => router.push("/menu")}
+          style={styles.backBtn}
+        >
           <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>X n O</Text>
@@ -54,25 +63,27 @@ export default function TicTacMenu() {
 
       {/* Menu items */}
       <View style={styles.menuContainer}>
-        <Text style={styles.subtitle}>Classic Tic-Tac-Toe. P1 is X, P2 is O.</Text>
+        <Text style={styles.subtitle}>
+          Classic Tic-Tac-Toe. P1 is X, P2 is O.
+        </Text>
         <Text style={styles.vs}>Play</Text>
-      <View style={styles.menuList}>
-        {MENU_ITEMS.map((item) => (
-          <TouchableOpacity
-            key={item.label}
-            style={styles.menuItem}
-            onPress={() => router.push(item.route as any)}
-            activeOpacity={0.7}
-          >          
-            <Ionicons name={item.icon} size={45} color={item.accent} />
-            <View style={styles.menuText}>
-              <Text style={styles.menuLabel}>{item.label}</Text>
-              <Text style={styles.menuSublabel}>{item.sublabel}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+        <View style={styles.menuList}>
+          {MENU_ITEMS.map((item) => (
+            <TouchableOpacity
+              key={item.label}
+              style={styles.menuItem}
+              onPress={() => router.push(item.route as any)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name={item.icon} size={45} color={item.accent} />
+              <View style={styles.menuText}>
+                <Text style={styles.menuLabel}>{item.label}</Text>
+                <Text style={styles.menuSublabel}>{item.sublabel}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-    </View>
     </SafeAreaView>
   );
 }
@@ -102,11 +113,11 @@ const styles = StyleSheet.create({
     color: "#1a1a1a",
     letterSpacing: 1,
   },
-    headerSpacer: {
+  headerSpacer: {
     width: 40,
     height: 40,
   },
-  menuContainer:{
+  menuContainer: {
     flex: 1,
     justifyContent: "center",
     backgroundColor: "#cecece",
@@ -118,7 +129,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-    subtitle: {
+  subtitle: {
     textAlign: "center",
     fontSize: 14,
     color: "#555",

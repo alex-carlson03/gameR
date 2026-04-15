@@ -5,28 +5,42 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { useUser } from "../lib/UserContext";
 
 type GameGridProps = {
   lobbyId: string;
   board: number[];
   onTilePress: (index: number) => void;
+  clientPlayerNumber: number;
 };
 
-
-const GameGrid = ({ lobbyId, board, onTilePress }: GameGridProps) => {
+const GameGrid = ({
+  lobbyId,
+  clientPlayerNumber,
+  board,
+  onTilePress,
+}: GameGridProps) => {
+  const { user } = useUser();
+  const clientColor = user?.avatar_color || "#4A90E2";
   const { width } = useWindowDimensions();
-  const tileSize = width / 3;
 
   return (
-    <View style={styles.grid}>
+    <View style={[styles.grid, { width: width - 48 }]}>
       {board.map((cell, index) => (
         <TouchableOpacity
           key={index}
           style={[
             styles.tile,
-            { width: tileSize, height: tileSize },
-            cell === 1 && styles.tileClient,
-            cell === 2 && styles.tileOpponent,
+            cell === 1 &&
+              styles.tileP1 && {
+                backgroundColor:
+                  clientPlayerNumber === 1 ? clientColor : "#E24A4A",
+              },
+            cell === 2 &&
+              styles.tileP2 && {
+                backgroundColor:
+                  clientPlayerNumber === 2 ? clientColor : "#E24A4A",
+              },
           ]}
           onPress={() => onTilePress(index)}
           activeOpacity={0.7}
@@ -42,15 +56,18 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    aspectRatio: 1,
   },
   tile: {
+    width: "33.333%",
+    aspectRatio: 1,
     borderWidth: 2,
-    borderColor: "#333",
+    borderColor: "#1a1a1a",
   },
-  tileClient: {
+  tileP1: {
     backgroundColor: "#4A90E2",
   },
-  tileOpponent: {
+  tileP2: {
     backgroundColor: "#E24A4A",
   },
 });

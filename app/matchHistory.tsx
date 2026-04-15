@@ -74,7 +74,7 @@ export default function Stats() {
 
       {/* Header with back button */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.push("/tictacmenu")} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Stats</Text>
