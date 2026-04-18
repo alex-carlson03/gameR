@@ -27,7 +27,7 @@ const AVATAR_COLORS = [
 
 export default function Settings() {
   const router = useRouter();
-  const { user, isLoading, updateUser } = useUser();
+  const { user, isLoading, updateUser, signOut } = useUser();
   const [displayName, setDisplayName] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -129,6 +129,10 @@ export default function Settings() {
           ) : (
             <Text style={styles.saveButtonText}>Save Changes</Text>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
+          <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -263,6 +267,16 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: "#1a1a1a",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  signOutButton: {
+    alignItems: "center",
+    paddingVertical: 14,
+    marginTop: 8,
+  },
+  signOutText: {
+    color: "#E94E77",
     fontSize: 16,
     fontWeight: "600",
   },

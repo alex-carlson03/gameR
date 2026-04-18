@@ -163,11 +163,18 @@ export default function Matchmaking() {
     }
   }, [user?.id]);
 
+  // leave queue if user logs out
+  useEffect(() => {
+    if (!user) {
+      leaveQueue();
+    }
+  }, [user]);
+
   // Cleanup on unmount only
   useEffect(() => {
     return () => {
       cleanup();
-      // Best-effort remove from queue — safe no-op if row doesn't exist
+      // remove from queue, safe no-op if row doesn't exist
       if (user) {
         supabase.from("matchmaking_players").delete().eq("user_id", user.id);
       }

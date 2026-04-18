@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
   createContext,
   useCallback,
@@ -7,8 +6,6 @@ import React, {
   useState,
 } from "react";
 import { supabase } from "./supabase";
-
-const USER_UUID_KEY = "user_uuid";
 
 export type User = {
   id: string;
@@ -21,12 +18,14 @@ type UserContextType = {
   user: User | null;
   isLoading: boolean;
   updateUser: (fields: { display_name?: string; avatar_color?: string }) => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType>({
   user: null,
   isLoading: true,
   updateUser: async () => {},
+  signOut: async () => {},
 });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
@@ -34,44 +33,56 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    initUser();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadProfile(session.user.id);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        await loadProfile(session.user.id);
+      } else {
+        setUser(null);
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  async function initUser() {
+  async function loadProfile(authUserId: string) {
     try {
-      const storedUuid = await AsyncStorage.getItem(USER_UUID_KEY);
-
-      if (storedUuid) {
-        // Fetch existing user from Supabase
-        const { data, error } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", storedUuid)
-          .single();
-
-        if (data && !error) {
-          setUser(data as User);
-          return;
-        }
-        // If fetch failed (e.g. row was deleted), fall through to create a new user
-      }
-
-      // Create a new user row in Supabase
       const { data, error } = await supabase
         .from("users")
-        .insert({ display_name: "Player", avatar_color: "#6C63FF" })
-        .select()
+        .select("*")
+        .eq("id", authUserId)
         .single();
 
-      if (error || !data) {
-        console.error("Failed to create user:", error);
+      if (data && !error) {
+        setUser(data as User);
         return;
       }
 
-      await AsyncStorage.setItem(USER_UUID_KEY, data.id);
-      setUser(data as User);
+      // No profile yet, create one with defaults
+      const { data: newProfile, error: createError } = await supabase
+        .from("users")
+        .insert({ id: authUserId, display_name: "Player", avatar_color: "#6C63FF" })
+        .select()
+        .single();
+
+      if (createError || !newProfile) {
+        console.error("Failed to create user profile:", createError);
+        return;
+      }
+
+      setUser(newProfile as User);
     } catch (err) {
-      console.error("Error initializing user:", err);
+      console.error("Error loading profile:", err);
     } finally {
       setIsLoading(false);
     }
@@ -98,8 +109,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     [user]
   );
 
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+  }, []);
+
   return (
-    <UserContext.Provider value={{ user, isLoading, updateUser }}>
+    <UserContext.Provider value={{ user, isLoading, updateUser, signOut }}>
       {children}
     </UserContext.Provider>
   );
